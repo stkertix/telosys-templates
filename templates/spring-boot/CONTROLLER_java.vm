@@ -1,0 +1,172 @@
+/*
+ * Copyright $today.date("YYYY") $COMPANY
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ${ROOT_PKG}.controller;
+
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.List;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import ${ROOT_PKG}.dto.${entity.name}DTO;
+import ${ROOT_PKG}.mapper.${entity.name}Mapper;
+import ${ROOT_PKG}.model.${entity.name};
+import ${ROOT_PKG}.repository.${entity.name}Repository;
+import ${ROOT_PKG}.service.${entity.name}Service;
+import ${ROOT_PKG}.util.HeaderUtil;
+import ${ROOT_PKG}.util.PaginationUtil;
+
+/**
+ * @author $COMPANY - $COMPANY_URL
+ * @copyright Copyright (c) $today.date("YYYY")
+ * @category Controller
+ * @since Version 1.0
+ * @create $today.date("YYYY-MM-dd HH:mm:ss") 
+ * @see ${entity.name}.java
+ * @see ${entity.name}DTO.java
+ * @see ${entity.name}Mapper.java
+ * @see ${entity.name}Repository.java
+ * @see ${entity.name}Service.java
+ * @see ${entity.name}Controller.java
+ * */
+
+@RestController
+@RequestMapping("/api")
+public class ${entity.name}Controller {
+
+	private static final String ENTITY_NAME = "${entity.databaseTable}";
+
+	@Autowired
+	${entity.name}Service service;
+
+	/**
+     * GET /${entity.databaseTable} : get all the ${entity.name}.
+     *
+     * @param pageable the pagination information
+     * @return the ResponseEntity with status 200 (OK) and the list of ${entity.name} in body
+     */
+    @GetMapping("/${entity.databaseTable}")
+    public ResponseEntity<List<${entity.name}DTO>> getAll(@RequestBody Pageable pageable) {
+        Page<${entity.name}DTO> page = service.findAll(pageable);
+        return new ResponseEntity<>(page.getContent(), HttpStatus.OK);
+    }
+
+	/**
+     * GET  /${entity.databaseTable}/:id : get the "id" ${entity.name}.
+     *
+     * @param id the id of the ${entity.name}DTO to retrieve
+     * @return the ResponseEntity with status 200 (OK) and with body the ${entity.name}DTO, or with status 404 (Not Found)
+     */
+    @GetMapping("/${entity.databaseTable}/{id}")
+#foreach($field in $entity.keyAttributes)
+    public ResponseEntity<${entity.name}DTO> getOne(@PathVariable $field.type id) {
+#end
+        ${entity.name}DTO dto = service.findOne(id);
+        return new ResponseEntity<${entity.name}DTO>(dto, HttpStatus.OK);
+    }
+
+	/**
+     * POST  /${entity.databaseTable} : Create a new ${entity.name}.
+     *
+     * @param ${entity.name}DTO the ${entity.name}DTO to create
+     * @return the ResponseEntity with status 201 (Created) and with body the new ${entity.name}DTO, or with status 400 (Bad Request) if the ${entity.name} has already an ID
+     * @throws URISyntaxException if the Location URI syntax is incorrect
+     */
+    @PostMapping("/${entity.databaseTable}")
+    public ResponseEntity<${entity.name}DTO> create(@RequestBody ${entity.name}DTO dto) throws URISyntaxException {
+#foreach($field in $entity.keyAttributes)
+        if (dto.${field.getter}() != null) {
+            return ResponseEntity.badRequest().headers(HeaderUtil.createFailureAlert(ENTITY_NAME, "idexists", "A new ${entity.name} cannot already have an ID")).body(null);
+        }
+
+        ${entity.name}DTO result = service.save(dto);
+        
+        return ResponseEntity.created(new URI("/api/${entity.databaseTable}/" + result.${field.getter}()))
+            .headers(HeaderUtil.createEntityCreationAlert(ENTITY_NAME, result.${field.getter}().toString()))
+            .body(result);
+#end
+    }
+
+	/**
+     * PUT  /${entity.databaseTable} : Updates an existing ${entity.name}.
+     *
+     * @param ${entity.name}DTO the ${entity.name}DTO to update
+     * @return the ResponseEntity with status 200 (OK) and with body the updated ${entity.name}DTO,
+     * or with status 400 (Bad Request) if the ${entity.name}DTO is not valid,
+     * or with status 500 (Internal Server Error) if the ${entity.name}DTO couldn't be updated
+     * @throws URISyntaxException if the Location URI syntax is incorrect
+     */
+    @PutMapping("/${entity.databaseTable}")
+    public ResponseEntity<${entity.name}DTO> update(@RequestBody ${entity.name}DTO dto) throws URISyntaxException {
+#foreach($field in $entity.keyAttributes)
+        if (dto.${field.getter}() == null) {
+            return create(dto);
+        }
+
+        ${entity.name}DTO result = service.save(dto);
+        return ResponseEntity.ok()
+            .headers(HeaderUtil.createEntityUpdateAlert(ENTITY_NAME, dto.${field.getter}().toString()))
+            .body(result);
+#end
+    }
+
+	/**
+     * DELETE  /${entity.databaseTable}/:id : delete the "id" ${entity.name}.
+     *
+     * @param id the id of the ${entity.name}DTO to delete
+     * @return the ResponseEntity with status 200 (OK)
+     */
+    @DeleteMapping("/${entity.databaseTable}/{id}")
+#foreach($field in $entity.keyAttributes)
+    public ResponseEntity<Void> delete(@PathVariable $field.type id) {
+#end
+        service.delete(id);
+        return ResponseEntity.ok().headers(HeaderUtil.createEntityDeletionAlert(ENTITY_NAME, id.toString())).build();
+    }
+
+	/**
+     * SEARCH  /_search/${entity.databaseTable}?query=:query : search for the ${entity.name} corresponding
+     * to the query.
+     *
+     * @param query the query of the ${entity.name} search
+     * @param pageable the pagination information
+     * @return the result of the search
+     */
+    @GetMapping("/_search/${entity.databaseTable}")
+    public ResponseEntity<List<${entity.name}DTO>> searchUomTypes(HttpServletRequest request, @RequestParam String query, Pageable pageable) {
+        Page<${entity.name}DTO> page = service.search(request, query, pageable);
+        HttpHeaders headers = PaginationUtil.generateSearchPaginationHttpHeaders(query, page, "/api/_search/${entity.databaseTable}");
+        return new ResponseEntity<>(page.getContent(), headers, HttpStatus.OK);
+    }
+
+}

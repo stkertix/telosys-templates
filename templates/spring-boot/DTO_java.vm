@@ -1,0 +1,98 @@
+/*
+ * Copyright $today.date("YYYY") $COMPANY
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ${ROOT_PKG}.dto;
+
+import java.time.LocalDate;
+
+import ${ROOT_PKG}.controller.${entity.name}Controller;
+import ${ROOT_PKG}.mapper.${entity.name}Mapper;
+import ${ROOT_PKG}.model.${entity.name};
+import ${ROOT_PKG}.repository.${entity.name}Repository;
+import ${ROOT_PKG}.service.${entity.name}Service;
+
+/**
+ * @author $COMPANY - $COMPANY_URL
+ * @copyright Copyright (c) $today.date("YYYY")
+ * @category DTO
+ * @since Version 1.0
+ * @create $today.date("YYYY-MM-dd HH:mm:ss") 
+ * @see ${entity.name}.java
+ * @see ${entity.name}DTO.java
+ * @see ${entity.name}Mapper.java
+ * @see ${entity.name}Repository.java
+ * @see ${entity.name}Service.java
+ * @see ${entity.name}Controller.java
+ */
+
+public class ${entity.name}DTO {
+
+#foreach($attribute in $entity.attributes)
+#if($attribute.isSelected())
+#if( $attribute.isKeyElement() )
+	private $attribute.type $attribute.name;
+
+#elseif($attribute.type == "Date")	
+	private LocalDate $attribute.name;
+
+#else
+	private $attribute.type $attribute.name;
+
+#end
+#end
+#end
+#foreach($link in $entity.selectedLinks)
+#if($link.isCardinalityManyToOne())
+	private ${link.fieldType}DTO ${link.fieldName}DTO;
+
+#end
+#end
+#foreach( $attribute in $entity.attributes )
+#if($attribute.isSelected())
+#if($attribute.type == "Date")	
+	public LocalDate ${attribute.getter}() {
+        return this.$attribute.name;
+    }
+
+	public void ${attribute.setter}(LocalDate $attribute.name) {
+        this.$attribute.name = $attribute.name ;
+    }
+
+#else
+	public $attribute.type ${attribute.getter}() {
+        return this.$attribute.name;
+    }
+
+	public void ${attribute.setter}($attribute.type $attribute.name) {
+        this.$attribute.name = $attribute.name ;
+    }
+
+#end
+#end
+#end
+#foreach($link in $entity.selectedLinks)
+#if($link.isCardinalityManyToOne())
+	public ${link.fieldType}DTO ${link.getter}() {
+        return this.${link.fieldName}DTO;
+    }
+
+	public void ${link.setter}(${link.fieldType}DTO ${link.fieldName}DTO) {
+        this.${link.fieldName}DTO = ${link.fieldName}DTO;
+    }
+
+#end
+#end
+}

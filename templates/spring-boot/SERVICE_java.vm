@@ -1,0 +1,127 @@
+/*
+ * Copyright $today.date("YYYY") $COMPANY
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ${ROOT_PKG}.service;
+
+import static org.elasticsearch.index.query.QueryBuilders.queryStringQuery;
+
+import javax.servlet.http.HttpServletRequest;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.elasticsearch.core.query.NativeSearchQueryBuilder;
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import ${ROOT_PKG}.controller.${entity.name}Controller;
+import ${ROOT_PKG}.dto.${entity.name}DTO;
+import ${ROOT_PKG}.mapper.${entity.name}Mapper;
+import ${ROOT_PKG}.model.${entity.name};
+import ${ROOT_PKG}.repository.${entity.name}Repository;
+import ${ROOT_PKG}.repository.search.${entity.name}SearchRepository;
+
+/**
+ * @author $COMPANY - $COMPANY_URL
+ * @copyright Copyright (c) $today.date("YYYY")
+ * @category Service
+ * @since Version 1.0
+ * @create $today.date("YYYY-MM-dd HH:mm:ss") 
+ * @see ${entity.name}.java
+ * @see ${entity.name}DTO.java
+ * @see ${entity.name}Mapper.java
+ * @see ${entity.name}Repository.java
+ * @see ${entity.name}Service.java
+ * @see ${entity.name}Controller.java
+ */
+
+@Service
+@Transactional
+public class ${entity.name}Service {
+
+	@Autowired
+	private ${entity.name}Repository repository;
+
+	@Autowired
+	private ${entity.name}SearchRepository searchRepository;
+
+	@Autowired
+	private ${entity.name}Mapper mapper;
+
+	/**
+     *  Get all the ${entity.name}s.
+     *
+     *  @param pageable the pagination information
+     *  @return the list of entities
+     */
+	@Transactional(readOnly = true)
+	public Page<${entity.name}DTO> findAll(Pageable pageable) {
+		return repository.findAll(pageable).map(mapper::toDto);
+	}
+
+	/**
+     *  Get one ${entity.name} by id.
+     *
+     *  @param id the id of the entity
+     *  @return the entity
+     */
+    @Transactional(readOnly = true)
+#foreach($field in $entity.keyAttributes)
+    public ${entity.name}DTO findOne($field.type id) {
+#end
+        ${entity.name} result = repository.findOne(id);
+		return mapper.toDto(result);
+    }
+
+	/**
+     * Save a ${entity.name}.
+     *
+     * @param ${entity.name}DTO the entity to save
+     * @return the persisted entity
+     */
+    public ${entity.name}DTO save(${entity.name}DTO dto) {
+        ${entity.name} o = mapper.toEntity(dto);
+        o = repository.save(o);
+        ${entity.name}DTO result = mapper.toDto(o);
+        return result;
+    }
+
+    /**
+     *  Delete the ${entity.name} by id.
+     *
+     *  @param id the id of the entity
+     */
+#foreach($field in $entity.keyAttributes)
+    public void delete($field.type id) {
+#end
+        repository.delete(id);
+    }
+
+    /**
+     * Search for the ${entity.name} corresponding to the query.
+     *
+     * @param query the query of the search
+     * @param pageable the pagination information
+     * @return the list of entities
+     */
+    @Transactional(readOnly = true)
+    public Page<${entity.name}DTO> search(HttpServletRequest request, String query, Pageable pageable) {
+        NativeSearchQueryBuilder q = new NativeSearchQueryBuilder().withQuery(queryStringQuery(query));
+        Page<${entity.name}> result = searchRepository.search(q.build().getQuery(), pageable);
+        return result.map(mapper::toDto);
+    }
+
+}

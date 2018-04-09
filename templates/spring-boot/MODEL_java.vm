@@ -1,0 +1,149 @@
+/*
+ * Copyright $today.date("YYYY") $COMPANY
+ * 
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ * 
+ *     http://www.apache.org/licenses/LICENSE-2.0
+ * 
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+ */
+
+package ${ROOT_PKG}.model;
+
+import java.time.LocalDate;
+
+import javax.persistence.Column;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.ManyToOne;
+import javax.persistence.Table;
+
+import org.hibernate.annotations.GenericGenerator;
+
+import ${ROOT_PKG}.controller.${entity.name}Controller;
+import ${ROOT_PKG}.dto.${entity.name}DTO;
+import ${ROOT_PKG}.mapper.${entity.name}Mapper;
+import ${ROOT_PKG}.repository.${entity.name}Repository;
+import ${ROOT_PKG}.service.${entity.name}Service;
+import ${ROOT_PKG}.util.BaseEntity;
+import ${ROOT_PKG}.util.DomainEntity;
+
+/**
+ * @author $COMPANY - $COMPANY_URL
+ * @copyright Copyright (c) $today.date("YYYY")
+ * @category Model
+ * @since Version 1.0
+ * @create $today.date("YYYY-MM-dd HH:mm:ss") 
+ * @see ${entity.name}.java
+ * @see ${entity.name}DTO.java
+ * @see ${entity.name}Mapper.java
+ * @see ${entity.name}Repository.java
+ * @see ${entity.name}Service.java
+ * @see ${entity.name}Controller.java
+ */
+
+@Entity
+@Table(name = "${entity.databaseTable}")
+@org.springframework.data.elasticsearch.annotations.Document(indexName = "${entity.databaseTable}")
+public class ${entity.name} extends BaseEntity {
+
+	private static final long serialVersionUID = 1L;
+
+#foreach($attribute in $entity.attributes)
+#if( $attribute.isKeyElement() && $attribute.type == "String")
+	@Id
+	@org.springframework.data.annotation.Id
+	@GeneratedValue(generator = "uuid2")
+	@GenericGenerator(name = "uuid2", strategy = "uuid2")
+	@Column(name = "$attribute.databaseName", nullable = false, length = DomainEntity.UUID)
+	private $attribute.type $attribute.name;
+
+#elseif( $attribute.isKeyElement() && $attribute.type == "Integer")
+	@Id
+	@org.springframework.data.annotation.Id
+	@GeneratedValue(strategy = GenerationType.IDENTITY)
+	@Column(name = "$attribute.databaseName")
+	private $attribute.type $attribute.name;
+
+#else
+#if($attribute.isSelected())
+#if($attribute.type == "Date")	
+	@Column(name = "$attribute.databaseName")
+	private LocalDate $attribute.name;
+#else
+	@Column(name = "$attribute.databaseName", length = #if($attribute.databaseName == "description")DomainEntity.DESCRIPTION#elseif($attribute.databaseName == "address")DomainEntity.DESCRIPTION#elseif($attribute.databaseName == "name")DomainEntity.NAME_SHORT#elseif($attribute.databaseSize == 36)DomainEntity.UUID#elseif($attribute.databaseSize == 1)DomainEntity.FLAG#elseif($attribute.databaseSize == 10)DomainEntity.STRING_VERY_SHORT#elseif($attribute.databaseSize == 30)DomainEntity.STRING_SHORT#elseif($attribute.databaseSize == 50)DomainEntity.STRING_MEDIUM#elseif($attribute.databaseSize == 100)DomainEntity.STRING_LONG#elseif($attribute.databaseSize == 255)DomainEntity.STRING_VERY_LONG#else$attribute.databaseSize#end)
+	private $attribute.type $attribute.name;
+#end
+
+#end
+#end
+#end
+#foreach($link in $entity.selectedLinks)
+#if($link.isCardinalityManyToOne())
+	@ManyToOne
+	@JoinColumn(name = "id_$link.targetTableName", referencedColumnName = "id_$link.targetTableName")
+	private $link.fieldType $link.fieldName;
+
+#end
+#end
+#foreach( $attribute in $entity.attributes )
+#if($attribute.isSelected())
+#if($attribute.type == "Date")	
+	public LocalDate ${attribute.getter}() {
+        return this.$attribute.name;
+    }
+
+	public void ${attribute.setter}(LocalDate $attribute.name) {
+        this.$attribute.name = $attribute.name ;
+    }
+
+#else
+	public $attribute.type ${attribute.getter}() {
+        return this.$attribute.name;
+    }
+
+	public void ${attribute.setter}($attribute.type $attribute.name) {
+        this.$attribute.name = $attribute.name ;
+    }
+
+#end
+#end
+#end
+#foreach($link in $entity.selectedLinks)
+#if($link.isCardinalityManyToOne())
+	public $link.fieldType ${link.getter}() {
+        return this.$link.fieldName;
+    }
+
+	public void ${link.setter}($link.fieldType $link.fieldName) {
+        this.$link.fieldName = $link.fieldName;
+    }
+
+#end
+#end
+    @Override
+    public String toString() {
+        return "${entity.name} :["
+#foreach($attribute in $entity.attributes)
+#if($attribute.isSelected())
+            + "$attribute.name=" + $attribute.name + ", "
+#end
+#end
+#foreach($link in $entity.selectedLinks)
+#if($link.isCardinalityManyToOne())
+			+ "$link.fieldName=" + $link.fieldName + ", "
+#end
+#end
+            + "]";
+    }
+
+}
