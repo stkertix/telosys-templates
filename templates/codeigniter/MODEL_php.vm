@@ -1,0 +1,30 @@
+<?php 
+/* *
+ * ${entity.name} Model
+ *
+ * @author          SDT Lab - http://www.sdtlab.com
+ * @copyright       Copyright (c) $today.date("YYYY")
+ * @category        Model
+ * @since           Version 1.0
+ * @create			$today.date("YYYY-MM-dd HH:mm:ss")
+ * @filename        ${entity.name}_model.php
+ *
+ * All connection with ${entity.name} tabel goes here.
+ * Description
+ * */
+
+class ${entity.name}_model extends Core_Model {
+
+	protected ${DOLLAR}table = '${entity.databaseTable}';
+#foreach($field in $entity.keyAttributes)
+	protected ${DOLLAR}id = '${field.databaseName}';
+	protected ${DOLLAR}id_type = '$fn.toLowerCase(${field.databaseType})';
+#end
+
+	public function __construct() {
+		parent::__construct();
+	}
+}
+
+/* End of file ${entity.name}_model.php */
+/* Location: ./application/models/${entity.name}_model.php */

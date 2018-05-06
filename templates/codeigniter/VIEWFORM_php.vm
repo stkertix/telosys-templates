@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+
+<?php ${DOLLAR}this->load->view('include/header'); ?>
+
+<body class="fixed-sidebar no-skin-config">
+
+	<div id="wrapper">
+		<?php ${DOLLAR}this->load->view('include/sidebar'); ?>
+		
+		<div id="page-wrapper" class="gray-bg">
+
+			<?php ${DOLLAR}this->load->view('include/topbar'); ?>
+
+			<div class="row wrapper border-bottom white-bg page-heading" style="margin-top: 60px;">
+				<div class="col-sm-8">
+					<h2>${entity.name}</h2>
+					<ol class="breadcrumb">
+						<li class="active"><strong>${entity.name}</strong></li>
+					</ol>
+				</div>
+				<div class="col-sm-4">
+					<div class="title-action">
+						<!-- <a href="#" class="btn btn-primary">This is action area</a> -->
+					</div>
+				</div>
+			</div>
+
+			<div class="wrapper wrapper-content animated fadeInRight">
+
+				<div class="row">
+					<div class="col-lg-12">
+						<form class="form-horizontal" action="<?php echo site_url('${entity.databaseTable}/save'); ?>" method="post">
+
+							<div class="ibox float-e-margins">
+								<div class="ibox-title">
+									<h5>User</h5>
+								</div>
+								<div class="ibox-content">
+
+#foreach($field in $entity.attributes)
+#if(!$field.isSelected())
+									<input name="$field.databaseName" type="hidden" value="<?php echo ${DOLLAR}${entity.databaseTable}->$field.databaseName; ?>">
+
+#else
+$field.isNotNull()
+									<div class="form-group">
+										<label for="code" class="col-lg-2 control-label">$field.label#if($field.isNotNull())<span class="text-danger">*)</span>#end</label>
+										<div class="col-lg-6">
+											<input class="form-control" name="$field.databaseName" type="$field.inputType" value="<?php echo ${DOLLAR}${entity.databaseTable}->$field.databaseName; ?>">
+										</div>
+										<div class="col-lg-4">
+											<span class="help-block m-b-none"></span>
+										</div>
+									</div>
+
+#end
+#end
+								</div> <!-- .ibox-content -->
+								<div class="ibox-footer">
+									<div class="row">
+										<div class="form-group">
+											<div class="col-sm-4 col-sm-offset-2">
+												<button class="btn btn-primary" type="submit">Simpan</button>
+												<a href="<?php echo site_url('${entity.databaseTable}') ?>" class="btn btn-default">Kembali</a>
+											</div>
+										</div>
+									</div> <!-- .row -->
+								</div> <!-- .ibox-footer -->
+							</div> <!-- .ibox -->
+
+						</form>
+					</div>
+
+				</div>
+			</div> <!-- .wrapper wrapper-content animated fadeInRight -->
+
+			<?php ${DOLLAR}this->load->view('include/footer'); ?>
+
+		</div> <!-- #page-wrapper -->
+
+	</div> <!-- #wrapper -->
+
+	<?php ${DOLLAR}this->load->view('include/js'); ?>
+</body>
+</html>

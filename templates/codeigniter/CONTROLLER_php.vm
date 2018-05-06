@@ -1,0 +1,90 @@
+<?php 
+/* *
+ * ${entity.name}
+ *
+ * @author          SDT Lab - http://www.sdtlab.com
+ * @copyright       Copyright (c) $today.date("YYYY")
+ * @category        Controller
+ * @since           Version 1.0
+ * @create			$today.date("YYYY-MM-dd HH:mm:ss")
+ * @filename        ${entity.name}.php
+ *
+ * All programming logics of ${entity.name} goes here.
+ * Description
+ * */
+
+class ${entity.name} extends CI_Controller {
+	public function __construct() {
+        parent::__construct();
+		${DOLLAR}this->load->model('${entity.name}_model');
+#foreach($link in $entity.selectedLinks)
+#if($link.isCardinalityManyToOne())
+		${DOLLAR}this->load->model('$fn.capitalize(${link.targetTableName})_model');
+#end
+#end
+    }
+
+    public function index() {
+    	${DOLLAR}this->load->view('$fn.toLowerCase(${entity.name})/$fn.toLowerCase(${entity.name})_manage');
+    }
+
+    public function form(${DOLLAR}id = NULL) {
+		if(${DOLLAR}id == NULL) {
+			${DOLLAR}entity = new stdClass();
+#foreach($field in $entity.attributes)
+			${DOLLAR}entity->${field.databaseName} = '';
+#end
+		} else {
+			${DOLLAR}entity = ${DOLLAR}this->${entity.name}_model->find_one(${DOLLAR}id);
+		}
+
+		${DOLLAR}data['${entity.databaseTable}'] = ${DOLLAR}entity;
+#foreach($link in $entity.selectedLinks)
+#if($link.isCardinalityManyToOne())
+		${DOLLAR}data['${link.targetTableName}'] = ${DOLLAR}this->$fn.capitalize(${link.targetTableName})_model->find_all();
+#end
+#end
+
+    	${DOLLAR}this->load->view('$fn.toLowerCase(${entity.name})/$fn.toLowerCase(${entity.name})_form', ${DOLLAR}data);
+    }
+
+	public function save() {
+		${DOLLAR}entity = new stdClass();
+#foreach($field in $entity.keyAttributes)
+		${DOLLAR}entity->${field.databaseName} = (${DOLLAR}this->input->post('${field.databaseName}') == '') ? NULL : ${DOLLAR}this->input->post('${field.databaseName}');
+#end
+#foreach($field in $entity.attributes)
+#if($field.isSelected())
+		${DOLLAR}entity->${field.databaseName} = (${DOLLAR}this->input->post('${field.databaseName}') == '') ? NULL : ${DOLLAR}this->input->post('${field.databaseName}');
+#end
+#end
+
+		${DOLLAR}result = ${DOLLAR}this->${entity.name}_model->save(${DOLLAR}entity);
+#foreach($field in $entity.keyAttributes)
+		redirect(site_url('${entity.databaseTable}/form/' . ${DOLLAR}result->${field.databaseName}));
+#end
+	}
+
+
+	/*
+	 * Ajax functions
+	 *
+	 * */
+
+	public function pageable() {
+		${DOLLAR}data;
+
+		if (${DOLLAR}_SERVER['CONTENT_TYPE'] == 'application/json;charset=UTF-8') {
+			${DOLLAR}data = ${DOLLAR}this->${entity.name}_model->pageable_object(json_decode(${DOLLAR}this->input->raw_input_stream, FALSE));
+		} else {
+			${DOLLAR}data = ${DOLLAR}this->${entity.name}_model->pageable(${DOLLAR}this->input->post());
+		}
+
+		${DOLLAR}this->output->set_header('Content-Type: application/json');
+		${DOLLAR}this->output->set_status_header(200);
+		${DOLLAR}this->output->set_output(json_encode(${DOLLAR}data));
+	}
+}
+
+/* End of file ${entity.name}.php */
+/* Location: ./application/controllers/${entity.name}.php */
